@@ -9,7 +9,7 @@ export class StatisticsWidget implements ExternalDSWidget {
   private requestor: ApiRequestor | null = null;
   private root: Root | null = null;
 
-  constructor(private obj: WidgetArgs) {}
+  constructor(private args: WidgetArgs) {}
 
   updateData(requestor: ApiRequestor): void {
     this.requestor = requestor;
@@ -29,7 +29,7 @@ export class StatisticsWidget implements ExternalDSWidget {
   private updateContainer() {
     if (this.root && this.requestor)
       this.root.render(
-        <Statistics requestor={this.requestor} isEditor={this.obj.isEditor} />);
+        <Statistics requestor={this.requestor} args={this.args} />);
   }
 
   dispose(): void {}

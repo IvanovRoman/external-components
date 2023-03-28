@@ -45,7 +45,10 @@ export const SimpleBarChart: React.FC<Props> = ({ requestor, args, setCondition 
         .filter(c => c.type != 'Text')
         .map((c) => ({ name: c.title, id: c.id, type: c.type }));
       if (columns.length) {
-        colId == -1 && setColId(columns[0].id);
+        if (colId == -1) {
+          const columnId = args?.getAppearance().columnId;
+          setColId(columnId ?? columns[0].id);
+        }
         setColumns(columns);
       }
     };
@@ -78,7 +81,7 @@ export const SimpleBarChart: React.FC<Props> = ({ requestor, args, setCondition 
         if (columns[colId].type == 'DateTime')
           tableValue = variantToDate(tableValue).toLocaleDateString('ru-RU');
         if (columns[colId].type == 'String')
-          value = values.textIDs?.[0]?.[idx];
+          value = 1;
         const total = Number(values.table?.[idx][1]);
         return { name: tableValue.toString(), total, value, color: colorsRef.current[idx] };
       }));
@@ -105,12 +108,17 @@ export const SimpleBarChart: React.FC<Props> = ({ requestor, args, setCondition 
     }
   }
 
+  const selectColumn = (id: number) => {
+    args?.setAppearance({ columnId: id });
+    setColId(id);
+  }
+
   return (
     <>
       <Select
         ref={ref}
         colId={colId}
-        setColId={setColId}
+        setColId={selectColumn}
         columns={columns}
       />
       { ref.current && (
@@ -154,4 +162,3 @@ function getRandomColor() {
   }
   return color;
 }
-

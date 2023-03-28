@@ -6,10 +6,10 @@ import * as scss from './styles.scss'
 
 interface Props {
   requestor: ApiRequestor;
-  isEditor?: boolean;
+  args?: WidgetArgs;
 }
 
-export const Statistics: React.FC<Props> = ({ requestor }) => {
+export const Statistics: React.FC<Props> = ({ requestor, args }) => {
   const [columns, setColumns] = React.useState<Column[]>([]);
   const [colId, setColId] = React.useState(-1);
   const [wrapperGuid, setWrapperGuid] = React.useState('');
@@ -27,7 +27,8 @@ export const Statistics: React.FC<Props> = ({ requestor }) => {
         .map((c) => ({ name: c.title, id: c.id }));
 
       if (columns.length) {
-        setColId(columns[0].id);
+        const columnId = args?.getAppearance().columnId;
+        setColId(columnId ?? columns[0].id);
         setColumns(columns);
       }
       setWrapperGuid(guid.wrapperGuid);
@@ -117,12 +118,17 @@ export const Statistics: React.FC<Props> = ({ requestor }) => {
     }
   };
 
+  const selectColumn = (id: number) => {
+    args?.setAppearance({ columnId: id });
+    setColId(id);
+  }
+
   return (
     <div className={scss.fullSize}>
       <Select
         ref={ref}
         colId={colId}
-        setColId={setColId}
+        setColId={selectColumn}
         columns={columns}
       />
       { ref.current && (
