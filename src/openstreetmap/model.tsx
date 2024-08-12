@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import type { TConditionNode, ApiRequestor, IWidget, WidgetArgs, ApprTab } from 'pa-typings';
+import type { TConditionNode, ApiRequestor, IWidget, WidgetArgs, ApprTab, ApprCtrl, Value } from 'pa-typings';
 
 import { OpenStreetMap } from './view';
 
@@ -55,8 +55,43 @@ class OpenStreetMapWidget implements IWidget {
       );
   }
 
-  getApprSchema(): ApprTab[] | undefined {
-    return undefined;
+  private async getColumnOptions() {
+    const { wrapperGuid } = await this.requestor!.wrapperGuid();
+
+    if (!this.requestor)
+      return [];
+
+    const { columns = [] } = await this.requestor.info({ wrapperGuid })
+    return columns.map(c => ({ label: c.title, value: c.id })) as unknown as Value[];
+  }
+
+  private updateAddressOptions(item: ApprCtrl, options: Value[]) {
+    if (item.apprKey === 'address' && item.props?.options)
+      item.props.options = [...item.props.options, ...options];
+    if (['longitude', 'latitude'].includes(item.apprKey)) {
+      item.hidden = true;
+    }
+  }
+
+  private updateCoordinateOptions(item: ApprCtrl, options: Value[]) {
+    if (item.props?.options && (item.apprKey === 'longitude' || item.apprKey === 'latitude'))
+      item.props.options = [...item.props.options, ...options];
+    if (item.apprKey === 'address') {
+      item.hidden = true;
+    }
+  }
+
+  async updateApprSchema(schema: ApprTab[]): Promise<ApprTab[]> {
+    schema = structuredClone(schema);
+
+    const mode = this.args.getApprValue('mode');
+    const options = await this.getColumnOptions();
+      for (const item of schema[0].items) {
+        mode === 'coordinates'
+          ? this.updateCoordinateOptions(item, options)
+          : this.updateAddressOptions(item, options);
+      }
+    return schema;
   }
 
   dispose(): void { }
